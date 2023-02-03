@@ -51,14 +51,38 @@ class MainWindow(QObject):
         self.city_data = CityData(clsmap_path)
 
 
-    def draw_map(self):
+    def draw_map(self, size=4096):
+        self.backend_size = size
         self.mapScene.clear()
         terrain_background = self.city_data.terrains.get_terrain_img()
         terrain_pixmap = QPixmap.fromImage(ImageQt.ImageQt(terrain_background))
-        w, h = terrain_pixmap.size().toTuple()
+        # w, h = terrain_pixmap.size().toTuple()
+        terrain_pixmap = terrain_pixmap.scaled(size, size)
         self.mapScene.addPixmap(terrain_pixmap)
-        self.mapView.fitInView(QRectF(0, 0, w, h), Qt.KeepAspectRatio)
+        self.mapView.fitInView(QRectF(0, 0, size, size), Qt.KeepAspectRatio)
+
+        self.draw_networks()
+
         self.mapScene.update()
+
+    
+    def draw_networks(self):
+
+        for seg in self.city_data.segs_dict.values():
+            if (seg.seg_type > 0):
+                self.draw_segment(seg)
+
+    # draw a single segment 
+    def draw_segment(self, seg):
+        for i, point in enumerate(seg.points):
+            if i < (len(seg.points) - 1):
+                # draw one sub-segment (invet Y axis)
+                self.mapScene.addLine(  \
+                            point[0] * self.backend_size,   \
+                            -point[2] * self.backend_size,  \
+                            seg.points[i+1][0] * self.backend_size, \
+                            -seg.points[i+1][2] * self.backend_size)
+
 
 
 if __name__ == "__main__":

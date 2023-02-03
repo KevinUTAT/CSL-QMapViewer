@@ -2,7 +2,7 @@ import math
 import numpy as np
 from PIL import Image as im
 
-MAX_16UINT = 65536
+MAX_16UINT = 65535
 
 class Terrains(object):
 
