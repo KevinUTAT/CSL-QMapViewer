@@ -1,3 +1,5 @@
 __pycache__
-*png
-*cslmap
+*.png
+*.cslmap
+*.log
+!README.rc/mainwindow.png

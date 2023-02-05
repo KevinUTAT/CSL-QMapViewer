@@ -1,4 +1,5 @@
 from enum import Enum
+import re
 
 MAX_COOR = 8648
 
@@ -10,6 +11,7 @@ class SegmentType(Enum):
     Highway = 4
     PedestrianPath = 5
     Quay = 6
+    PedestrianStreet = 7
 
     def __lt__(self, other):
         if self.__class__ is other.__class__:
@@ -28,19 +30,19 @@ class SegmentType(Enum):
 
 class Segment(object):
 
-    def __init__(self, id, sn, en, icls, width):
+    def __init__(self, id, sn, en, icls, width, iner_name):
         self.id = int(id)
         self.sn = int(sn)
         self.en = int(en)
         self.icls = icls
         self.width = float(width)
+        self.internal_name = iner_name
 
         self.name = ""
         self.points = []
 
         self.find_seg_type()
         
-
     
     def add_name(self, name):
         self.name = name
@@ -59,22 +61,34 @@ class Segment(object):
         y_out = y
         return x_out, y_out, z_out
 
+    # Clasify segment to different type. this is mostly hard coded 
+    # and probably needs update frequently
     def find_seg_type(self):
         # is it train track?
-        if ('train' in self.icls.lower()) \
-            and ('track' in self.icls.lower()):
+        if (re.match("^(?=.*train)(?=.*track).*$", self.icls.lower())):
             self.seg_type = SegmentType.TrainTrack
+        # is it pedestrian street?
+        elif(re.match("^(?=.*pedestrian)(?=(.*street)|(.*road)).*$", \
+                self.icls.lower())):
+            self.seg_type = SegmentType.PedestrianStreet
+        # is it pedestrian path?
+        elif (re.match("^(.*pedestrian).*$", self.icls.lower())):
+            self.seg_type = SegmentType.PedestrianPath
+        # is it highway?
+        elif (re.match("^(.*highway).*$", self.icls.lower()) \
+            and not re.match("^(.*res)|(.*brick)|(.*swanky).*$", \
+                        self.internal_name.lower())):
+            self.seg_type = SegmentType.Highway
         # is it street (road)?
-        elif ('road' in self.icls.lower()) \
-            or ('street' in self.icls.lower()):
+        elif (re.match("^(.*road)|(.*street)|(.*alley)|(.*highway)|(.*next).*$", \
+                self.icls.lower())):
             self.seg_type = SegmentType.Street
         # is it metro track?
-        elif ('metro' in self.icls.lower()) \
-            and ('track' in self.icls.lower()):
+        elif (re.match("^(?=.*metro)(?=.*track).*$", self.icls.lower())):
             self.seg_type = SegmentType.MetroTrack
-        # is it highway?
-        elif ('highway' in self.icls.lower()):
-            self.seg_type = SegmentType.Highway
+        # is it quay
+        elif (re.match("^(.*quay).*$", self.icls.lower())):
+            self.seg_type = SegmentType.Quay
         else:
             self.seg_type = SegmentType.Other
         

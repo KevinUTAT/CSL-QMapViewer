@@ -6,11 +6,13 @@ import PySide6
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import QApplication, QWidget, QGraphicsView
 from PySide6.QtCore import QFile, QObject, QRectF, Qt, Slot
-from PySide6.QtGui import QPixmap, QImage
+from PySide6.QtGui import QPixmap, QImage, QPen, QColor
 # get local sources
 from mapScene import MapScene, MapView
 
 from city_data import CityData
+from segment import SegmentType, MAX_COOR
+from cartographer import Cartographer
 
 
 class MainWindow(QObject):
@@ -32,7 +34,9 @@ class MainWindow(QObject):
         self.window.show()
 
         self.__load_city_elements(sys.argv[1])
-        self.draw_map()
+
+        self.cartographer = Cartographer(self.mapScene, self.mapView, self.city_data)
+        self.cartographer.draw_map()
 
 
     # initialize all the GUI elements
@@ -51,37 +55,6 @@ class MainWindow(QObject):
         self.city_data = CityData(clsmap_path)
 
 
-    def draw_map(self, size=4096):
-        self.backend_size = size
-        self.mapScene.clear()
-        terrain_background = self.city_data.terrains.get_terrain_img()
-        terrain_pixmap = QPixmap.fromImage(ImageQt.ImageQt(terrain_background))
-        # w, h = terrain_pixmap.size().toTuple()
-        terrain_pixmap = terrain_pixmap.scaled(size, size)
-        self.mapScene.addPixmap(terrain_pixmap)
-        self.mapView.fitInView(QRectF(0, 0, size, size), Qt.KeepAspectRatio)
-
-        self.draw_networks()
-
-        self.mapScene.update()
-
-    
-    def draw_networks(self):
-
-        for seg in self.city_data.segs_dict.values():
-            if (seg.seg_type > 0):
-                self.draw_segment(seg)
-
-    # draw a single segment 
-    def draw_segment(self, seg):
-        for i, point in enumerate(seg.points):
-            if i < (len(seg.points) - 1):
-                # draw one sub-segment (invet Y axis)
-                self.mapScene.addLine(  \
-                            point[0] * self.backend_size,   \
-                            -point[2] * self.backend_size,  \
-                            seg.points[i+1][0] * self.backend_size, \
-                            -seg.points[i+1][2] * self.backend_size)
 
 
 
