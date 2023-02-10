@@ -6,8 +6,9 @@ from PySide6.QtCore import Qt
 # (mouse, keyboard or even touch)
 class MapScene(QGraphicsScene):
 
-    def __init__(self, parent):
+    def __init__(self, parent, cursor_pos_callback):
         super().__init__(parent)
+        self.cursor_pos_callback = cursor_pos_callback
 
 
     def set_view_ref(self, view):
@@ -25,6 +26,10 @@ class MapScene(QGraphicsScene):
             self.view_ref.scale(1.1, 1.1)
         elif (event.key() == Qt.Key_Minus):
             self.view_ref.scale(0.9, 0.9)
+
+    # get the location of the current cursor
+    def mouseMoveEvent(self, event):
+        self.cursor_pos_callback(event.pos(), event.scenePos())
     
 
 class MapView(QGraphicsView):

@@ -3,7 +3,47 @@ import re
 
 MAX_COOR = 8648
 
-class SegmentType(Enum):
+class SegmentLane(object):
+    lane_type =    {"None"              : 0,
+                    "Pedestrian"        : 1,
+                    "Vehicle"           : 2,
+                    "Parking"           : 3,
+                    "PublicTransport"   : 4,
+                    "TransportVehicle"  : 5}
+    vehicle_type = {"None"              : 0,
+                    "Car"               : 1,
+                    "Train"             : 2,
+                    "Tram"              : 3,
+                    "Metro"             : 4,
+                    "Bicycle"           : 5,
+                    "Car, Tram"         : 6,
+                    "Ferry"             : 7,
+                    "Ship"              : 8,
+                    "Monorail"          : 9,
+                    "CableCar"          : 10,
+                    "Car, Tram, Trolleybus" : 11,
+                    "TrolleybusRightPole"   : 13,
+                    "TrolleybusLeftPole"    : 14,
+                    "Car, Trolleybus"       : 15}
+    direction_type={"None"              : 0,
+                    "Backward"          : 1,
+                    "Forward"           : 2,
+                    "Both"              : 3,
+                    "AvoidForward"      : 4,
+                    "AvoidBackward"     : 5,
+                    "Avoid"             : 6,
+                    "AvoidBoth"         : 7}
+    def __init__(self, ltype, vtype, dir_, pos, width, speed):
+        self.type = self.lane_type[ltype]
+        self.vtype = self.vehicle_type[vtype]
+        self.dir = self.direction_type[dir_]
+        self.pos = float(pos)
+        self.width = float(pos)
+        self.speed = float(speed)
+
+
+class SegmentType(object):
+    seg_name_dict = {}
     Other = 0
     TrainTrack = 1
     Street = 2
@@ -12,6 +52,7 @@ class SegmentType(Enum):
     PedestrianPath = 5
     Quay = 6
     PedestrianStreet = 7
+    Tram = 8
 
     def __lt__(self, other):
         if self.__class__ is other.__class__:
@@ -26,6 +67,61 @@ class SegmentType(Enum):
         elif other.__class__ is int:
             return self.value > other
         return NotImplemented
+
+    def __eq__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value == other.value
+        elif other.__class__ is int:
+            return self.value == other
+        return NotImplemented
+
+
+    def __init__(self, type_name, icls):
+        is_highway = self.seg_name_dict[type_name][0]
+        lanes = self.seg_name_dict[type_name][1]
+        self.has_tram = False
+        self.only_tram = False
+        self.bike_lane = False
+        # is it train track?
+        if (re.match("^(?=.*train)(?=.*track).*$", icls.lower())):
+            self.value = SegmentType.TrainTrack
+        # is it pedestrian street?
+        elif(re.match("^(?=.*pedestrian)(?=(.*street)|(.*road)).*$", \
+                icls.lower())):
+            self.value = SegmentType.PedestrianStreet
+            self.find_st_property(lanes)
+        # is it pedestrian path?
+        elif (re.match("^(.*pedestrian).*$", icls.lower())):
+            self.value = SegmentType.PedestrianPath
+        # is it highway?
+        elif is_highway:
+            self.value = SegmentType.Highway
+        # is it street (road)?
+        elif (re.match("^(.*road)|(.*street)|(.*alley)|(.*highway)|(.*next).*$", \
+                icls.lower())):
+            self.value = SegmentType.Street
+            self.find_st_property(lanes)
+        # is it metro track?
+        elif (re.match("^(?=.*metro)(?=.*track).*$", icls.lower())):
+            self.value = SegmentType.MetroTrack
+        # is it quay
+        elif (re.match("^(.*quay).*$", icls.lower())):
+            self.value = SegmentType.Quay
+        # is it tram
+        elif (re.match("^(.*tram).*$", icls.lower())):
+            self.value = SegmentType.Tram
+        else:
+            self.value = SegmentType.Other
+
+    
+    def find_st_property(self, lanes):
+        for lane in lanes:
+            if (lane.vtype == SegmentLane.vehicle_type["Tram"] \
+                or lane.vtype == SegmentLane.vehicle_type["Car, Tram"] \
+                or lane.vtype == SegmentLane.vehicle_type["Car, Tram, Trolleybus"]):
+                self.has_tram = True
+            if (lane.vtype == SegmentLane.vehicle_type["Bicycle"]):
+                self.bike_lane = True
 
 
 class Segment(object):
@@ -64,32 +160,6 @@ class Segment(object):
     # Clasify segment to different type. this is mostly hard coded 
     # and probably needs update frequently
     def find_seg_type(self):
-        # is it train track?
-        if (re.match("^(?=.*train)(?=.*track).*$", self.icls.lower())):
-            self.seg_type = SegmentType.TrainTrack
-        # is it pedestrian street?
-        elif(re.match("^(?=.*pedestrian)(?=(.*street)|(.*road)).*$", \
-                self.icls.lower())):
-            self.seg_type = SegmentType.PedestrianStreet
-        # is it pedestrian path?
-        elif (re.match("^(.*pedestrian).*$", self.icls.lower())):
-            self.seg_type = SegmentType.PedestrianPath
-        # is it highway?
-        elif (re.match("^(.*highway).*$", self.icls.lower()) \
-            and not re.match("^(.*res)|(.*brick)|(.*swanky).*$", \
-                        self.internal_name.lower())):
-            self.seg_type = SegmentType.Highway
-        # is it street (road)?
-        elif (re.match("^(.*road)|(.*street)|(.*alley)|(.*highway)|(.*next).*$", \
-                self.icls.lower())):
-            self.seg_type = SegmentType.Street
-        # is it metro track?
-        elif (re.match("^(?=.*metro)(?=.*track).*$", self.icls.lower())):
-            self.seg_type = SegmentType.MetroTrack
-        # is it quay
-        elif (re.match("^(.*quay).*$", self.icls.lower())):
-            self.seg_type = SegmentType.Quay
-        else:
-            self.seg_type = SegmentType.Other
-        
+        self.seg_type = SegmentType(self.internal_name, self.icls)
+
         

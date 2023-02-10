@@ -1,7 +1,8 @@
 import xml.etree.ElementTree as ET
 from terrains import Terrains
-from segment import Segment, SegmentType
+from segment import Segment, SegmentType, SegmentLane
 from building import Building, BuildingType
+from node import Node
 
 
 # top level data strcture to store all of the city data from the *.cslmap file
@@ -27,6 +28,9 @@ class CityData(object):
 
     # load network stuff: nodes and segments
     def get_networks(self):
+
+        self.get_nodes()
+        self.get_segment_types()
         
         # load all segments
         self.segs_dict = {}
@@ -37,6 +41,7 @@ class CityData(object):
         self.pedestrian_path_segs = []
         self.quay_segs = []
         self.pedestrian_st_segs = []
+        self.tram_segs = []
         self.other_segs = []
 
         print("Loading segments: ", end='')
@@ -67,10 +72,39 @@ class CityData(object):
                 self.train_track_segs.append(int(seg.attrib['id']))
             elif (new_seg.seg_type == SegmentType.MetroTrack):
                 self.metro_track_segs.append(int(seg.attrib['id']))
+            elif (new_seg.seg_type == SegmentType.Tram):
+                self.tram_segs.append(int(seg.attrib['id']))
             else:
                 self.other_segs.append(int(seg.attrib['id']))
 
         print(len(self.segs_dict), "segments")
+
+
+    def get_segment_types(self):
+        for seg_type in self.city_root.find('SegmentTypes'):
+            is_highway = seg_type.attrib['highway'] == 'true'
+            lanes = []
+            for lane in seg_type.find('Lanes').findall('Lane'):
+                new_lane = SegmentLane(lane.attrib['type'], lane.attrib['vType'], \
+                                        lane.attrib['dir'], lane.attrib['pos'], \
+                                        lane.attrib['width'], lane.attrib['speed'])
+                lanes.append(new_lane)
+            SegmentType.seg_name_dict[seg_type.attrib['name']] = [is_highway, lanes]
+
+    
+    def get_nodes(self):
+        self.node_dict = {}
+        print("Loading nodes: ", end='')
+        for node in self.city_root.find('Nodes').findall('Node'):
+            node_pos = node.find('Pos')
+            new_node = Node(node.attrib['id'], node.attrib['ug'], \
+                            node.attrib['og'], node.attrib['srv'], \
+                            node.attrib['subsrv'], node_pos.attrib['x'], \
+                            node_pos.attrib['y'], node_pos.attrib['z'])
+            self.node_dict[int(node.attrib['id'])] = new_node
+        print(len(self.node_dict), "nodes")
+        
+
 
     # load buildings
     def get_buildings(self):
@@ -80,6 +114,21 @@ class CityData(object):
         self.com_buils = []
         self.ind_buils = []
         self.off_buils = []
+        self.beauti_buils = []
+        self.edu_buils = []
+        self.sport_buils = []
+        self.transit_buils = []
+        self.police_buils = []
+        self.elec_buils = []
+        self.fire_buils = []
+        self.road_buils = []
+        self.serv_buils = []
+        self.mont_buils = []
+        self.health_buils = []
+        self.water_buils = []
+        self.garb_buils = []
+        self.disaster_buils = []
+        self.fish_buils = []
         self.other_buils = []
 
         print("Loading building: ", end='')
@@ -101,12 +150,42 @@ class CityData(object):
 
             if (new_building.btype == BuildingType.Residential):
                 self.res_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.Commercial):
+            elif (new_building.btype == BuildingType.Commercial): 
                 self.com_buils.append(int(buil.attrib['id']))
             elif (new_building.btype == BuildingType.Industrial):
                 self.ind_buils.append(int(buil.attrib['id']))
             elif (new_building.btype == BuildingType.Office):
                 self.off_buils.append(int(buil.attrib['id']))
+            elif (new_building.btype == BuildingType.Beautification):
+                self.beauti_buils.append(int(buil.attrib['id']))
+            elif (new_building.btype == BuildingType.Education):
+                self.edu_buils.append(int(buil.attrib['id']))
+            elif (new_building.btype == BuildingType.PublicTransport):
+                self.transit_buils.append(int(buil.attrib['id']))
+            elif (new_building.btype == BuildingType.Police):
+                self.police_buils.append(int(buil.attrib['id']))
+            elif (new_building.btype == BuildingType.Electricity):
+                self.elec_buils.append(int(buil.attrib['id']))
+            elif (new_building.btype == BuildingType.Fire):
+                self.fire_buils.append(int(buil.attrib['id']))
+            elif (new_building.btype == BuildingType.Road):
+                self.road_buils.append(int(buil.attrib['id']))
+            elif (new_building.btype == BuildingType.ServicePoint):
+                self.serv_buils.append(int(buil.attrib['id']))
+            elif (new_building.btype == BuildingType.Monument):
+                self.mont_buils.append(int(buil.attrib['id']))
+            elif (new_building.btype == BuildingType.HealthCare):
+                self.health_buils.append(int(buil.attrib['id']))
+            elif (new_building.btype == BuildingType.VarsitySports):
+                self.sport_buils.append(int(buil.attrib['id']))
+            elif (new_building.btype == BuildingType.Water):
+                self.water_buils.append(int(buil.attrib['id']))
+            elif (new_building.btype == BuildingType.Garbage):
+                self.garb_buils.append(int(buil.attrib['id']))
+            elif (new_building.btype == BuildingType.Disaster):
+                self.disaster_buils.append(int(buil.attrib['id']))
+            elif (new_building.btype == BuildingType.Fishing):
+                self.fish_buils.append(int(buil.attrib['id']))
             else:
                 self.other_buils.append(int(buil.attrib['id']))
 

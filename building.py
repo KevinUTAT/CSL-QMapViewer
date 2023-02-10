@@ -75,7 +75,7 @@ class Building(object):
             self.btype = BuildingType.Residential
         elif (re.match("^(.*commercial).*$", self.srv.lower())):
             self.btype = BuildingType.Commercial
-        elif (re.match("^(.*industrial).*$", self.srv.lower())):
+        elif (re.match("^(.*industr).*$", self.srv.lower())):
             self.btype = BuildingType.Industrial
         elif (re.match("^(.*office).*$", self.srv.lower())):
             self.btype = BuildingType.Office
