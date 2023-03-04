@@ -4,9 +4,10 @@ from PIL import ImageQt
 # Get Qt components
 import PySide6
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtWidgets import QApplication, QWidget, QGraphicsView, QStatusBar
+from PySide6.QtWidgets import (QApplication, QWidget, QGraphicsView, 
+                                QStatusBar, QFileDialog, QProgressDialog)
 from PySide6.QtCore import QFile, QObject, QRectF, Qt, Slot
-from PySide6.QtGui import QPixmap, QImage, QPen, QColor
+from PySide6.QtGui import QPixmap, QImage, QPen, QColor, QAction
 # get local sources
 from mapScene import MapScene, MapView
 
@@ -33,17 +34,18 @@ class MainWindow(QObject):
 
         self.window.show()
 
-        self.__load_city_elements(sys.argv[1])
-
-        self.backend_size = 4096
-        self.cartographer = Cartographer(self.mapScene, self.mapView, self.city_data, self.status_bar)
-        self.cartographer.draw_map(self.backend_size)
+        if (len(sys.argv) > 1):
+            self.load_city(sys.argv[1])
 
 
     # initialize all the GUI elements
     def __init_frontend_elements(self):
         # === Status Bar ===============================================
         self.status_bar = self.window.findChild(QStatusBar, 'statusbar')
+
+        # === Menu actions =============================================
+        self.window.findChild(QAction, 'actionOpen').\
+            triggered.connect(self.__open_new_city)
 
         # === Map viewer ===============================================
         self.mapScene = MapScene(self, self.show_cursor_pos)
@@ -54,9 +56,42 @@ class MainWindow(QObject):
         self.mapView.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
 
 
+    def __open_new_city(self):
+        self.load_city()
+
+    # load and draw a new city from file
+    def load_city(self, clsmap_path=None):
+        if (clsmap_path is None):
+            (clsmap_path, ext) = QFileDialog.getOpenFileName(\
+                filter="CSLMAP files (*.cslmap)")
+
+        self.__load_city_elements(clsmap_path)
+        self.backend_size = 4096
+        self.cartographer = Cartographer(self.mapScene, self.mapView, self.city_data, self.status_bar)
+        self.cartographer.draw_map(self.backend_size)
+        self.city_loaded = True
+
+
     # load backend city data elements
     def __load_city_elements(self, clsmap_path):
+        progress_bar = QProgressDialog("Loading data...", "Abort", \
+                0, 5, self.window)
+        progress_bar.setWindowModality(Qt.WindowModal)
+
         self.city_data = CityData(clsmap_path)
+        progress_bar.setValue(1)
+
+        self.city_data.get_terrains()
+        progress_bar.setValue(2)
+
+        self.city_data.get_networks()
+        progress_bar.setValue(3)
+
+        self.city_data.get_buildings()
+        progress_bar.setValue(4)
+
+        self.city_data.get_transit()
+        progress_bar.setValue(5)
 
 
     def show_cursor_pos(self, cursor_pos, cursor_scene_pos):

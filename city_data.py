@@ -11,10 +11,6 @@ class CityData(object):
 
     def __init__(self, path2xml):
         self.load_xml(path2xml)
-        self.get_terrains()
-        self.get_networks()
-        self.get_buildings()
-        self.get_transit()
 
     # load the xml file (*.cslmap)
     def load_xml(self, path2xml):

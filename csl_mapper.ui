@@ -49,8 +49,26 @@
      <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionOpen"/>
+    <addaction name="actionExport"/>
+   </widget>
+   <addaction name="menuFile"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Open ..</string>
+   </property>
+  </action>
+  <action name="actionExport">
+   <property name="text">
+    <string>Export ..</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
