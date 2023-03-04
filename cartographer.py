@@ -4,8 +4,10 @@ from PySide6.QtGui import QPixmap, QImage, QPen, QColor, QPolygonF, QBrush
 from PySide6.QtWidgets import QGraphicsItem, QGraphicsPixmapItem
 from PIL import ImageQt
 
+from map_graphics import TransitStopMark
 from segment import SegmentType, MAX_COOR
 from building import BuildingType
+from transit import TransitType
 
 # Cartographer draws map
 class Cartographer(object):
@@ -32,7 +34,7 @@ class Cartographer(object):
         self.draw_streets()
         self.draw_highways()
         self.draw_transit_building()
-        self.draw_tram_tracks()
+        # self.draw_tram_tracks()
         self.draw_train_tracks()
         self.draw_metro_tracks()
         self.draw_other_building()
@@ -55,7 +57,7 @@ class Cartographer(object):
         self.draw_edu_building()
         self.draw_sport_building()
         self.draw_health_building()
-        self.draw_tram()
+        self.draw_transit_lines()
         
 
         self.mapScene.update()
@@ -303,6 +305,7 @@ class Cartographer(object):
         for b_id in self.city_data.health_buils:
             building = self.city_data.building_dict[b_id]
             poly = self.draw_building(building, b_pen, b_brush)
+            poly.setFlag(QGraphicsItem.ItemContainsChildrenInShape)
             icon = QGraphicsPixmapItem(QPixmap("icon/health.png"), poly)
             # print(icon.scenePos())
 
@@ -331,10 +334,12 @@ class Cartographer(object):
         return self.mapScene.addPolygon(polygon, pen, brush)
 
 
-    def draw_tram(self):
-        for node in self.city_data.node_dict.values():
-            if (node.subsrv == "PublicTransportTram"):
-                self.draw_dot(node, 2, Qt.red)
+    def draw_transit_lines(self):
+        for line in self.city_data.transit_dict.values():
+            if (line.type == TransitType.Tram):
+                for stop_id in line.stops:
+                    stop_node = self.city_data.node_dict[stop_id]
+                    self.draw_dot(stop_node, 2, Qt.red)
 
 
     def draw_dot(self, node, r, color):
@@ -342,4 +347,7 @@ class Cartographer(object):
         dot_pen.setCosmetic(True)
         rec_x = node.x * self.backend_size - r
         rec_y = -node.z * self.backend_size - r
-        self.mapScene.addEllipse(rec_x, rec_y, 2*r, 2*r, dot_pen)
+        # return self.mapScene.addEllipse(rec_x, rec_y, 2*r, 2*r, dot_pen)
+        new_mark = TransitStopMark(rec_x, rec_y, 2*r, 2*r)
+        new_mark.setPen(dot_pen)
+        self.mapScene.addItem(new_mark)

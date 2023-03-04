@@ -3,6 +3,7 @@ from terrains import Terrains
 from segment import Segment, SegmentType, SegmentLane
 from building import Building, BuildingType
 from node import Node
+from transit import TransitLine
 
 
 # top level data strcture to store all of the city data from the *.cslmap file
@@ -13,6 +14,7 @@ class CityData(object):
         self.get_terrains()
         self.get_networks()
         self.get_buildings()
+        self.get_transit()
 
     # load the xml file (*.cslmap)
     def load_xml(self, path2xml):
@@ -192,6 +194,18 @@ class CityData(object):
         print(len(self.building_dict), "buildings")
         
             
+    def get_transit(self):
+        self.transit_dict = {}
+        print("Loading transit: ", end='')
+        for line in self.city_root.find('Transports').findall('Trans'):
+            line_color = line.find('color')
+            new_line = TransitLine(line.attrib['id'], line.attrib['name'], \
+                            line.attrib['type'], line_color.attrib['r'], \
+                            line_color.attrib['g'], line_color.attrib['b'])
+            for stop in line.find('Stops').findall('Stop'):
+                new_line.add_stop(stop.attrib['node'])
+            self.transit_dict[int(line.attrib['id'])] = new_line
+        print(len(self.transit_dict), "transits")
 
 
 
