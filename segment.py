@@ -4,39 +4,53 @@ import re
 MAX_COOR = 8648
 
 class SegmentLane(object):
-    lane_type =    {"None"              : 0,
-                    "Pedestrian"        : 1,
-                    "Vehicle"           : 2,
-                    "Parking"           : 3,
-                    "PublicTransport"   : 4,
-                    "TransportVehicle"  : 5}
-    vehicle_type = {"None"              : 0,
-                    "Car"               : 1,
-                    "Train"             : 2,
-                    "Tram"              : 3,
-                    "Metro"             : 4,
-                    "Bicycle"           : 5,
-                    "Car, Tram"         : 6,
-                    "Ferry"             : 7,
-                    "Ship"              : 8,
-                    "Monorail"          : 9,
-                    "CableCar"          : 10,
+    lane_type =    {"None"                  : 0,
+                    "Pedestrian"            : 1,
+                    "Vehicle"               : 2,
+                    "Parking"               : 3,
+                    "PublicTransport"       : 4,
+                    "TransportVehicle"      : 5}
+    vehicle_type = {"None"                  : 0,
+                    "Car"                   : 1,
+                    "Train"                 : 2,
+                    "Tram"                  : 3,
+                    "Metro"                 : 4,
+                    "Bicycle"               : 5,
+                    "Car, Tram"             : 6,
+                    "Ferry"                 : 7,
+                    "Ship"                  : 8,
+                    "Monorail"              : 9,
+                    "CableCar"              : 10,
                     "Car, Tram, Trolleybus" : 11,
                     "TrolleybusRightPole"   : 13,
                     "TrolleybusLeftPole"    : 14,
-                    "Car, Trolleybus"       : 15}
-    direction_type={"None"              : 0,
-                    "Backward"          : 1,
-                    "Forward"           : 2,
-                    "Both"              : 3,
-                    "AvoidForward"      : 4,
-                    "AvoidBackward"     : 5,
-                    "Avoid"             : 6,
-                    "AvoidBoth"         : 7}
+                    "Car, Trolleybus"       : 15,
+                    "Plane"                 : 16,
+                    "1572880"               : 17} # this is also plane
+    direction_type={"None"                  : 0,
+                    "Backward"              : 1,
+                    "Forward"               : 2,
+                    "Both"                  : 3,
+                    "AvoidForward"          : 4,
+                    "AvoidBackward"         : 5,
+                    "Avoid"                 : 6,
+                    "AvoidBoth"             : 7}
     def __init__(self, ltype, vtype, dir_, pos, width, speed):
-        self.type = self.lane_type[ltype]
-        self.vtype = self.vehicle_type[vtype]
-        self.dir = self.direction_type[dir_]
+        if (ltype in self.lane_type.keys()):
+            self.type = self.lane_type[ltype]
+        else:
+            self.type = 0
+        
+        if (vtype in self.vehicle_type.keys()):
+            self.vtype = self.vehicle_type[vtype]
+        else:
+            self.vtype = 0
+
+        if (dir_ in self.direction_type.keys()):
+            self.dir = self.direction_type[dir_]
+        else:
+            self.dir = 0
+
         self.pos = float(pos)
         self.width = float(pos)
         self.speed = float(speed)
@@ -53,6 +67,8 @@ class SegmentType(object):
     Quay = 6
     PedestrianStreet = 7
     Tram = 8
+    Runway = 9
+    Taxiway = 10
 
     def __lt__(self, other):
         if self.__class__ is other.__class__:
@@ -110,6 +126,12 @@ class SegmentType(object):
         # is it tram
         elif (re.match("^(.*tram).*$", icls.lower())):
             self.value = SegmentType.Tram
+        # is it runway  ; sorry for the confusing comprehension, its just checking if any lane carrys plane
+        elif (len([1 for lane in lanes if lane.vtype == SegmentLane.vehicle_type["Plane"]]) > 0): 
+            self.value = SegmentType.Runway
+        # is it taxiway
+        elif (len([1 for lane in lanes if lane.vtype == SegmentLane.vehicle_type["1572880"]]) > 0):
+            self.value = SegmentType.Taxiway
         else:
             self.value = SegmentType.Other
 

@@ -33,6 +33,7 @@ class Cartographer(object):
         self.draw_pedestrian_streets()
         self.draw_streets()
         self.draw_highways()
+        self.draw_airport_path()
         self.draw_transit_building()
         # self.draw_tram_tracks()
         self.draw_train_tracks()
@@ -148,6 +149,15 @@ class Cartographer(object):
             pen_width = seg.width * (self.backend_size / MAX_COOR) / 2
             st_pen = QPen(st_colour, 2, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
             st_pen.setCosmetic(True)
+            self.draw_segment(seg, st_pen)
+
+
+    def draw_airport_path(self):
+        st_colour = QColor(187,187,204)
+        for seg_id in self.city_data.airport_segs:
+            seg = self.city_data.segs_dict[seg_id]
+            pen_width = seg.width * (self.backend_size / MAX_COOR) / 2
+            st_pen = QPen(st_colour, pen_width, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
             self.draw_segment(seg, st_pen)
 
     # draw a single segment 

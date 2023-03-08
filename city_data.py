@@ -40,6 +40,7 @@ class CityData(object):
         self.quay_segs = []
         self.pedestrian_st_segs = []
         self.tram_segs = []
+        self.airport_segs = []
         self.other_segs = []
 
         print("Loading segments: ", end='')
@@ -72,6 +73,9 @@ class CityData(object):
                 self.metro_track_segs.append(int(seg.attrib['id']))
             elif (new_seg.seg_type == SegmentType.Tram):
                 self.tram_segs.append(int(seg.attrib['id']))
+            elif (new_seg.seg_type == SegmentType.Runway \
+                    or new_seg.seg_type == SegmentType.Taxiway):
+                self.airport_segs.append(int(seg.attrib['id']))
             else:
                 self.other_segs.append(int(seg.attrib['id']))
 
