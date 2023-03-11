@@ -1,6 +1,7 @@
 import sys
 import os
 from PIL import ImageQt
+from pathlib import Path
 # Get Qt components
 import PySide6
 from PySide6.QtUiTools import QUiLoader
@@ -54,7 +55,13 @@ class MainWindow(QObject):
         self.mapScene.set_view_ref(self.mapView)
         self.mapView.setDragMode(QGraphicsView.ScrollHandDrag)  # enable panning
         self.mapView.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
+        self.mapView.droppedFiles.connect(self.onDropped)
 
+
+    def onDropped(self, links):
+        for link in links:
+            if Path(link).suffix == "cslmap":
+                self.load_city(links[-1])
 
     def __open_new_city(self):
         self.load_city()

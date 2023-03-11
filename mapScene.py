@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (QGraphicsScene, QGraphicsView)
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 
 
 # MapScene is attached to MapView to provide interations control 
@@ -33,8 +33,12 @@ class MapScene(QGraphicsScene):
     
 
 class MapView(QGraphicsView):
+
+    droppedFiles = Signal(list)
+
     def __init__(self, parent):
         super().__init__(parent)
+        self.setAcceptDrops(True)
 
     # mouse wheel to zoom 
     # has to implement here to disable scolling?
@@ -46,4 +50,22 @@ class MapView(QGraphicsView):
         wheel_setp = wheel_move / 120
         self.scale(1 + wheel_setp/10, 1 + wheel_setp/10)
         # super().wheelEvent(event)
-        
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasUrls:
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        if event.mimeData().hasUrls:
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+            links = []
+            for url in event.mimeData().urls():
+                links.append(str(url.toLocalFile()))
+            print(links)
+            self.droppedFiles.emit(links)
+        else:
+            event.ignore()
