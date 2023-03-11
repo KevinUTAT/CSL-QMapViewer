@@ -60,7 +60,7 @@ class MainWindow(QObject):
 
     def onDropped(self, links):
         for link in links:
-            if Path(link).suffix == "cslmap":
+            if Path(link).suffix == ".cslmap":
                 self.load_city(links[-1])
 
     def __open_new_city(self):
