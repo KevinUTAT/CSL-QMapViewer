@@ -60,8 +60,7 @@ class MainWindow(QObject):
 
     def onDropped(self, links):
         for link in links:
-            if Path(link).suffix == ".cslmap":
-                self.load_city(links[-1])
+            self.load_city(links[-1])
 
     def __open_new_city(self):
         self.load_city()
@@ -70,9 +69,15 @@ class MainWindow(QObject):
     def load_city(self, clsmap_path=None):
         if (clsmap_path is None):
             (clsmap_path, ext) = QFileDialog.getOpenFileName(\
-                filter="CSLMAP files (*.cslmap)")
+                filter="CSLMAP files (*.cslmap *gz)")
+            self.__load_city_elements(clsmap_path)
+        elif (Path(clsmap_path).suffix == ".cslmap"):
+            self.__load_city_elements(clsmap_path)
+        elif (Path(clsmap_path).suffix == ".gz"):
+            return
+        else:
+            return
 
-        self.__load_city_elements(clsmap_path)
         self.backend_size = 4096
         self.cartographer = Cartographer(self.mapScene, self.mapView, self.city_data, self.status_bar)
         self.cartographer.draw_map(self.backend_size)
