@@ -6,7 +6,7 @@ from node import Node
 from transit import TransitLine
 
 
-# top level data strcture to store all of the city data from the *.cslmap file
+# top level data strcture to store all the city data from the *.cslmap file
 class CityData(object):
 
     def __init__(self, path2xml):
@@ -20,7 +20,9 @@ class CityData(object):
 
     # load terrain data from root
     def get_terrains(self):
-        sea_level = int(self.city_root.find('SeaLevel').text)
+        # apparently the SeaLevel is sometimes not a natural number, e.g. "207.328",
+        # so it needs to be split after the dot for int() to work
+        sea_level = int(self.city_root.find('SeaLevel').text.split('.')[0])
         self.terrains = Terrains(self.city_root.find('Terrains').   \
                                 find('Ter').text, sea_level)
 
@@ -136,60 +138,51 @@ class CityData(object):
         print("Loading building: ", end='')
         building_root = self.city_root.find('Buildings')
         for buil in building_root.findall('Buil'):
+            # id = id (unique Number),
+            # name = name (e.g. "H3 4x4 Office07"),
+            # srv = category (e.g. "Office", "Residential", "PlayerEducation", etc.),
+            # subsrv = subcategory (e.g. "ResidentialHigh", "OfficeGeneric", "PlayerEducationLiberalArts"),
+            # icls = category (e.g. "Office - Level 3", "High Residential - Level5")
             new_building = Building(buil.attrib['id'], buil.attrib['name'], buil.attrib['srv'], \
                                     buil.attrib['subsrv'], buil.attrib['icls'])
-            if ('subb' in  buil.attrib.keys()):
+            if ('subb' in  buil.attrib.keys()):  # sub-building
                 new_building.add_child(buil.attrib['subb'])
-            if ('prntb' in buil.attrib.keys()):
+            if ('prntb' in buil.attrib.keys()):  # parent-building
                 new_building.add_parent(buil.attrib['prntb'])
-            if ('myname' in buil.attrib.keys()):
+            if ('myname' in buil.attrib.keys()):  # custom name by player
                 new_building.add_myname(buil.attrib['myname'])
 
-            for point in buil.find('Points').findall('P'):
+            for point in buil.find('Points').findall('P'):  # location of building
                 new_building.add_point(point.attrib['x'], point.attrib['y'], point.attrib['z'])
 
             self.building_dict[int(buil.attrib['id'])] = new_building
 
-            if (new_building.btype == BuildingType.Residential):
-                self.res_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.Commercial): 
-                self.com_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.Industrial):
-                self.ind_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.Office):
-                self.off_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.Beautification):
-                self.beauti_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.Education):
-                self.edu_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.PublicTransport):
-                self.transit_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.Police):
-                self.police_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.Electricity):
-                self.elec_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.Fire):
-                self.fire_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.Road):
-                self.road_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.ServicePoint):
-                self.serv_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.Monument):
-                self.mont_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.HealthCare):
-                self.health_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.VarsitySports):
-                self.sport_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.Water):
-                self.water_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.Garbage):
-                self.garb_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.Disaster):
-                self.disaster_buils.append(int(buil.attrib['id']))
-            elif (new_building.btype == BuildingType.Fishing):
-                self.fish_buils.append(int(buil.attrib['id']))
-            else:
-                self.other_buils.append(int(buil.attrib['id']))
+            # simplified via ChatGPT
+            # maps BuildingType to the list attribute
+            building_type_map = {
+                BuildingType.Residential: self.res_buils,
+                BuildingType.Commercial: self.com_buils,
+                BuildingType.Industrial: self.ind_buils,
+                BuildingType.Office: self.off_buils,
+                BuildingType.Beautification: self.beauti_buils,
+                BuildingType.Education: self.edu_buils,
+                BuildingType.PublicTransport: self.transit_buils,
+                BuildingType.Police: self.police_buils,
+                BuildingType.Electricity: self.elec_buils,
+                BuildingType.Fire: self.fire_buils,
+                BuildingType.Road: self.road_buils,
+                BuildingType.ServicePoint: self.serv_buils,
+                BuildingType.Monument: self.mont_buils,
+                BuildingType.HealthCare: self.health_buils,
+                BuildingType.VarsitySports: self.sport_buils,
+                BuildingType.Water: self.water_buils,
+                BuildingType.Garbage: self.garb_buils,
+                BuildingType.Disaster: self.disaster_buils,
+                BuildingType.Fishing: self.fish_buils
+            }
+
+            # get the appropriate list attribute based on the new_building.btype, then append the id to selected list
+            building_type_map.get(new_building.btype, self.other_buils).append(int(buil.attrib['id']))
 
         print(len(self.building_dict), "buildings")
         
@@ -206,9 +199,3 @@ class CityData(object):
                 new_line.add_stop(stop.attrib['node'])
             self.transit_dict[int(line.attrib['id'])] = new_line
         print(len(self.transit_dict), "transits")
-
-
-
-# testbench
-if __name__ == '__main__':
-    test_city = CityData("testmap.cslmap")

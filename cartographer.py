@@ -9,6 +9,8 @@ from segment import SegmentType, MAX_COOR
 from building import BuildingType
 from transit import TransitType
 
+ICON_SIZE = 32
+
 # Cartographer draws map
 class Cartographer(object):
 
@@ -218,7 +220,17 @@ class Cartographer(object):
         b_brush = QBrush(QColor(224,198,204))
         for b_id in self.city_data.edu_buils:
             building = self.city_data.building_dict[b_id]
-            self.draw_building(building, b_pen, b_brush)
+            building_poly = self.draw_building(building, b_pen, b_brush)
+            # draw icon
+            icon = QGraphicsPixmapItem(QPixmap("icon/education.png"), building_poly)
+            scale_factor = 4 / ICON_SIZE  # magic number for reasonable size, sorry
+            building_dounding_rect = building_poly.polygon().boundingRect()
+            poly_center_x = building_dounding_rect.x() \
+                + int(building_dounding_rect.width() / 2) - (ICON_SIZE * scale_factor)
+            poly_center_y = building_dounding_rect.y() \
+                + int(building_dounding_rect.height() / 2) - (ICON_SIZE * scale_factor)
+            icon.setPos(poly_center_x, poly_center_y)
+            icon.setScale(scale_factor)
 
 
     def draw_sport_building(self):
@@ -314,10 +326,17 @@ class Cartographer(object):
         b_brush = QBrush(QColor(255, 255, 255))
         for b_id in self.city_data.health_buils:
             building = self.city_data.building_dict[b_id]
-            poly = self.draw_building(building, b_pen, b_brush)
-            poly.setFlag(QGraphicsItem.ItemContainsChildrenInShape)
-            icon = QGraphicsPixmapItem(QPixmap("icon/health.png"), poly)
-            # print(icon.scenePos())
+            building_poly = self.draw_building(building, b_pen, b_brush)
+            # poly.setFlag(QGraphicsItem.ItemContainsChildrenInShape)
+            icon = QGraphicsPixmapItem(QPixmap("icon/health.png"), building_poly)
+            scale_factor = 4 / ICON_SIZE  # magic number for reasonable size, sorry
+            building_dounding_rect = building_poly.polygon().boundingRect()
+            poly_center_x = building_dounding_rect.x() \
+                + int(building_dounding_rect.width() / 2) - (ICON_SIZE * scale_factor)
+            poly_center_y = building_dounding_rect.y() \
+                + int(building_dounding_rect.height() / 2) - (ICON_SIZE * scale_factor)
+            icon.setPos(poly_center_x, poly_center_y)
+            icon.setScale(scale_factor)
 
 
     def draw_fish_building(self):
