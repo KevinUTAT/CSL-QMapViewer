@@ -226,9 +226,9 @@ class Cartographer(object):
             scale_factor = 4 / ICON_SIZE  # magic number for reasonable size, sorry
             building_dounding_rect = building_poly.polygon().boundingRect()
             poly_center_x = building_dounding_rect.x() \
-                + int(building_dounding_rect.width() / 2) - (ICON_SIZE * scale_factor)
+                + int(building_dounding_rect.width() / 2) - (ICON_SIZE * scale_factor * 0.5)
             poly_center_y = building_dounding_rect.y() \
-                + int(building_dounding_rect.height() / 2) - (ICON_SIZE * scale_factor)
+                + int(building_dounding_rect.height() / 2) - (ICON_SIZE * scale_factor * 0.5)
             icon.setPos(poly_center_x, poly_center_y)
             icon.setScale(scale_factor)
 
@@ -332,9 +332,9 @@ class Cartographer(object):
             scale_factor = 4 / ICON_SIZE  # magic number for reasonable size, sorry
             building_dounding_rect = building_poly.polygon().boundingRect()
             poly_center_x = building_dounding_rect.x() \
-                + int(building_dounding_rect.width() / 2) - (ICON_SIZE * scale_factor)
+                + int(building_dounding_rect.width() / 2) - (ICON_SIZE * scale_factor * 0.5)
             poly_center_y = building_dounding_rect.y() \
-                + int(building_dounding_rect.height() / 2) - (ICON_SIZE * scale_factor)
+                + int(building_dounding_rect.height() / 2) - (ICON_SIZE * scale_factor * 0.5)
             icon.setPos(poly_center_x, poly_center_y)
             icon.setScale(scale_factor)
 
