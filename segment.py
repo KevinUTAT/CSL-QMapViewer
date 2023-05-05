@@ -69,6 +69,7 @@ class SegmentType(object):
     Tram = 8
     Runway = 9
     Taxiway = 10
+    Concourse = 11
 
     def __lt__(self, other):
         if self.__class__ is other.__class__:
@@ -126,6 +127,9 @@ class SegmentType(object):
         # is it tram
         elif (re.match("^(.*tram).*$", icls.lower())):
             self.value = SegmentType.Tram
+        # is it airport 
+        elif (re.match("^(.*concourse).*$", icls.lower())):
+            self.value = SegmentType.Concourse
         # is it runway  ; sorry for the confusing comprehension, its just checking if any lane carrys plane
         elif (len([1 for lane in lanes if lane.vtype == SegmentLane.vehicle_type["Plane"]]) > 0): 
             self.value = SegmentType.Runway

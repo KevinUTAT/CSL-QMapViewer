@@ -36,6 +36,7 @@ class Cartographer(object):
         self.draw_streets()
         self.draw_highways()
         self.draw_airport_path()
+        self.draw_airport_concourse()
         self.draw_transit_building()
         # self.draw_tram_tracks()
         self.draw_train_tracks()
@@ -162,6 +163,15 @@ class Cartographer(object):
             st_pen = QPen(st_colour, pen_width, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
             self.draw_segment(seg, st_pen)
 
+
+    def draw_airport_concourse(self):
+        st_colour = QColor(228,228,192)
+        for seg_id in self.city_data.concourse_segs:
+            seg = self.city_data.segs_dict[seg_id]
+            pen_width = seg.width * (self.backend_size / MAX_COOR) / 2
+            st_pen = QPen(st_colour, pen_width, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+            self.draw_segment(seg, st_pen)
+
     # draw a single segment 
     def draw_segment(self, seg, pen=QPen()):
         for i, point in enumerate(seg.points):
@@ -221,16 +231,7 @@ class Cartographer(object):
         for b_id in self.city_data.edu_buils:
             building = self.city_data.building_dict[b_id]
             building_poly = self.draw_building(building, b_pen, b_brush)
-            # draw icon
-            icon = QGraphicsPixmapItem(QPixmap("icon/education.png"), building_poly)
-            scale_factor = 4 / ICON_SIZE  # magic number for reasonable size, sorry
-            building_dounding_rect = building_poly.polygon().boundingRect()
-            poly_center_x = building_dounding_rect.x() \
-                + int(building_dounding_rect.width() / 2) - (ICON_SIZE * scale_factor * 0.5)
-            poly_center_y = building_dounding_rect.y() \
-                + int(building_dounding_rect.height() / 2) - (ICON_SIZE * scale_factor * 0.5)
-            icon.setPos(poly_center_x, poly_center_y)
-            icon.setScale(scale_factor)
+            self.draw_building_icon(building_poly, "icon/education.png")
 
 
     def draw_sport_building(self):
@@ -246,7 +247,8 @@ class Cartographer(object):
         b_brush = QBrush(QColor(230, 200, 255))
         for b_id in self.city_data.transit_buils:
             building = self.city_data.building_dict[b_id]
-            self.draw_building(building, b_pen, b_brush)
+            building_poly = self.draw_building(building, b_pen, b_brush)
+            self.draw_building_icon(building_poly, "icon/transit.png")
 
 
     def draw_police_building(self):
@@ -254,7 +256,8 @@ class Cartographer(object):
         b_brush = QBrush(QColor(224,198,204))
         for b_id in self.city_data.police_buils:
             building = self.city_data.building_dict[b_id]
-            self.draw_building(building, b_pen, b_brush)
+            building_poly = self.draw_building(building, b_pen, b_brush)
+            self.draw_building_icon(building_poly, "icon/police.png")
 
 
     def draw_elec_building(self):
@@ -270,7 +273,8 @@ class Cartographer(object):
         b_brush = QBrush(QColor(224,198,204))
         for b_id in self.city_data.fire_buils:
             building = self.city_data.building_dict[b_id]
-            self.draw_building(building, b_pen, b_brush)
+            building_poly = self.draw_building(building, b_pen, b_brush)
+            self.draw_building_icon(building_poly, "icon/fire.png")
 
 
     def draw_road_building(self):
@@ -302,7 +306,8 @@ class Cartographer(object):
         b_brush = QBrush(QColor(135,191,191))
         for b_id in self.city_data.water_buils:
             building = self.city_data.building_dict[b_id]
-            self.draw_building(building, b_pen, b_brush)
+            building_poly = self.draw_building(building, b_pen, b_brush)
+            self.draw_building_icon(building_poly, "icon/water.png")
 
 
     def draw_garb_building(self):
@@ -327,16 +332,7 @@ class Cartographer(object):
         for b_id in self.city_data.health_buils:
             building = self.city_data.building_dict[b_id]
             building_poly = self.draw_building(building, b_pen, b_brush)
-            # poly.setFlag(QGraphicsItem.ItemContainsChildrenInShape)
-            icon = QGraphicsPixmapItem(QPixmap("icon/health.png"), building_poly)
-            scale_factor = 4 / ICON_SIZE  # magic number for reasonable size, sorry
-            building_dounding_rect = building_poly.polygon().boundingRect()
-            poly_center_x = building_dounding_rect.x() \
-                + int(building_dounding_rect.width() / 2) - (ICON_SIZE * scale_factor * 0.5)
-            poly_center_y = building_dounding_rect.y() \
-                + int(building_dounding_rect.height() / 2) - (ICON_SIZE * scale_factor * 0.5)
-            icon.setPos(poly_center_x, poly_center_y)
-            icon.setScale(scale_factor)
+            self.draw_building_icon(building_poly, "icon/health.png")
 
 
     def draw_fish_building(self):
@@ -361,6 +357,19 @@ class Cartographer(object):
             polygon.append(QPointF(point[0] * self.backend_size, \
                                 -point[2] * self.backend_size))
         return self.mapScene.addPolygon(polygon, pen, brush)
+
+    
+    def draw_building_icon(self, parent_poly, icon_file ):
+        # parent_poly.setFlag(QGraphicsItem.ItemContainsChildrenInShape)
+        icon = QGraphicsPixmapItem(QPixmap(icon_file), parent_poly)
+        scale_factor = 4 / ICON_SIZE  # magic number for reasonable size, sorry
+        building_dounding_rect = parent_poly.polygon().boundingRect()
+        poly_center_x = building_dounding_rect.x() \
+            + int(building_dounding_rect.width() / 2) - (ICON_SIZE * scale_factor * 0.5)
+        poly_center_y = building_dounding_rect.y() \
+            + int(building_dounding_rect.height() / 2) - (ICON_SIZE * scale_factor * 0.5)
+        icon.setPos(poly_center_x, poly_center_y)
+        icon.setScale(scale_factor)
 
 
     def draw_transit_lines(self):
