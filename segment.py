@@ -70,6 +70,7 @@ class SegmentType(object):
     Runway = 9
     Taxiway = 10
     Concourse = 11
+    MonorailTrack = 12
 
     def __lt__(self, other):
         if self.__class__ is other.__class__:
@@ -97,6 +98,7 @@ class SegmentType(object):
         is_highway = self.seg_name_dict[type_name][0]
         lanes = self.seg_name_dict[type_name][1]
         self.has_tram = False
+        self.has_monorail = False
         self.only_tram = False
         self.bike_lane = False
         # is it train track?
@@ -121,6 +123,9 @@ class SegmentType(object):
         # is it metro track?
         elif (re.match("^(?=.*metro)(?=.*track).*$", icls.lower())):
             self.value = SegmentType.MetroTrack
+        # is it monorail track?
+        elif (re.match("^(?=.*monorail)(?=.*track).*$", icls.lower())):
+            self.value = SegmentType.MonorailTrack
         # is it quay
         elif (re.match("^(.*quay).*$", icls.lower())):
             self.value = SegmentType.Quay
@@ -146,6 +151,8 @@ class SegmentType(object):
                 or lane.vtype == SegmentLane.vehicle_type["Car, Tram"] \
                 or lane.vtype == SegmentLane.vehicle_type["Car, Tram, Trolleybus"]):
                 self.has_tram = True
+            if (lane.vtype == SegmentLane.vehicle_type["Monorail"]):
+                self.has_monorail = True
             if (lane.vtype == SegmentLane.vehicle_type["Bicycle"]):
                 self.bike_lane = True
 

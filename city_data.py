@@ -37,6 +37,7 @@ class CityData(object):
         self.highway_segs = []
         self.street_segs = []
         self.train_track_segs = []
+        self.monorail_track_segs = []
         self.metro_track_segs = []
         self.pedestrian_path_segs = []
         self.quay_segs = []
@@ -72,6 +73,8 @@ class CityData(object):
                 self.quay_segs.append(int(seg.attrib['id']))
             elif (new_seg.seg_type == SegmentType.TrainTrack):
                 self.train_track_segs.append(int(seg.attrib['id']))
+            elif (new_seg.seg_type == SegmentType.MonorailTrack):
+                self.monorail_track_segs.append(int(seg.attrib['id']))
             elif (new_seg.seg_type == SegmentType.MetroTrack):
                 self.metro_track_segs.append(int(seg.attrib['id']))
             elif (new_seg.seg_type == SegmentType.Tram):

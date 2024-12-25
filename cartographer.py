@@ -61,6 +61,7 @@ class Cartographer(object):
         self.draw_edu_building()
         self.draw_sport_building()
         self.draw_health_building()
+        self.draw_monorail_tracks()
         self.draw_transit_lines()
         
 
@@ -74,7 +75,14 @@ class Cartographer(object):
             pen_width = seg.width * (self.backend_size / MAX_COOR) / 2
             st_pen = QPen(QColor(248, 249, 250), pen_width, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
             self.draw_segment(seg, st_pen)
-        
+        # draw monorail track on top
+        for seg_id in self.city_data.street_segs:
+            seg = self.city_data.segs_dict[seg_id]
+            if (seg.seg_type.has_monorail):
+                mr_track_pen = QPen(Qt.darkRed, 3, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+                mr_track_pen.setCosmetic(True)
+                self.draw_segment(seg, mr_track_pen)
+        # draw tram track on top
         for seg_id in self.city_data.street_segs:
             seg = self.city_data.segs_dict[seg_id]
             if (seg.seg_type.has_tram):
@@ -118,6 +126,16 @@ class Cartographer(object):
     def draw_train_tracks(self):
         st_colour = Qt.darkGray
         for seg_id in self.city_data.train_track_segs:
+            seg = self.city_data.segs_dict[seg_id]
+            pen_width = seg.width * (self.backend_size / MAX_COOR) / 2
+            st_pen = QPen(st_colour, 3, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
+            st_pen.setCosmetic(True)
+            self.draw_segment(seg, st_pen) 
+
+
+    def draw_monorail_tracks(self):
+        st_colour = Qt.darkRed
+        for seg_id in self.city_data.monorail_track_segs:
             seg = self.city_data.segs_dict[seg_id]
             pen_width = seg.width * (self.backend_size / MAX_COOR) / 2
             st_pen = QPen(st_colour, 3, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin)
