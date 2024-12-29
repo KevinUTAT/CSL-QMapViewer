@@ -6,7 +6,7 @@ from PIL import ImageQt
 
 from map_graphics import TransitStopMark
 from segment import SegmentType, MAX_COOR
-from building import BuildingType
+from building import BuildingType, BuildingPolygon
 from transit import TransitType
 
 ICON_SIZE = 32
@@ -374,7 +374,12 @@ class Cartographer(object):
         for point in building.points:
             polygon.append(QPointF(point[0] * self.backend_size, \
                                 -point[2] * self.backend_size))
-        return self.mapScene.addPolygon(polygon, pen, brush)
+        # polygon_item = self.mapScene.addPolygon(polygon, pen, brush)
+        polygon_item = BuildingPolygon(polygon, pen, brush, 
+                                    self.mapScene.detail_table_callback)
+        building.set_polygon(polygon_item)
+        self.mapScene.addItem(building.polygon)
+        return polygon_item
 
     
     def draw_building_icon(self, parent_poly, icon_file ):

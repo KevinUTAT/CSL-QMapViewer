@@ -1,5 +1,9 @@
 from enum import Enum
 import re
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QGraphicsPolygonItem
+from PySide6.QtGui import QPen
+from mapTableModel import BuildingTableModel
 
 MAX_COOR = 8648
 
@@ -40,6 +44,9 @@ class Building(object):
         self.subb = None
         self.prntb = None
 
+        # the BuildingPolygon object being drawn on the scene
+        self.polygon = None
+
         self.find_building_type()
 
 
@@ -59,6 +66,10 @@ class Building(object):
         x_norm, y_norm, z_norm = self.remap_coordinate(float(x), float(y), float(z))
         self.points.append([x_norm, y_norm, z_norm])
 
+
+    def set_polygon(self, polygon_ref):
+        self.polygon = polygon_ref
+        self.polygon.set_building(self)
 
     def remap_coordinate(self, x, y, z):
         # How to remap coordnate: ONLY x and z
@@ -111,3 +122,44 @@ class Building(object):
             self.btype = BuildingType.Fishing
         else:
             self.btype = BuildingType.Other
+
+
+class BuildingPolygon(QGraphicsPolygonItem):
+
+    def __init__(self, polygon, pen, brush, detail_table_callback=None, parent=None):
+        super().__init__(polygon, parent)
+        self.setAcceptHoverEvents(True)
+        self.setAcceptedMouseButtons(Qt.LeftButton)
+        self.defult_brush = brush
+        self.defult_pen = pen
+        self.setBrush(brush)
+        self.setPen(pen)
+        # set up the highlight pen
+        self.highlight_pen = QPen(pen.color(), pen.widthF() + 0.5, pen.style(), pen.capStyle(), pen.joinStyle())
+
+        self.detail_table_callback = detail_table_callback
+
+    def set_building(self, building_ref):
+        self.building = building_ref
+
+    def hoverEnterEvent(self, event):
+        self.setPen(self.highlight_pen)
+        self.update()
+        # print("Hovering enter at buliding: ", self.building.internal_name)
+    
+    def hoverLeaveEvent(self, event):
+        self.setPen(self.defult_pen)
+        self.update()
+        # print("Hovering leave at buliding: ", self.building.internal_name)
+
+    
+    def mousePressEvent(self, event):
+        # Handle the left-click event (check if it was the left button)
+        if event.button() == Qt.LeftButton:
+            if (self.detail_table_callback is not None):
+                detail_model = BuildingTableModel(self.building)
+                self.detail_table_callback(detail_model)
+            else:
+                print("Click at buliding: ", self.building.internal_name)
+        
+        # super().mousePressEvent(event)

@@ -6,9 +6,10 @@ from PySide6.QtCore import Qt, Signal
 # (mouse, keyboard or even touch)
 class MapScene(QGraphicsScene):
 
-    def __init__(self, parent, cursor_pos_callback):
+    def __init__(self, parent, cursor_pos_callback, detail_table_callback):
         super().__init__(parent)
         self.cursor_pos_callback = cursor_pos_callback
+        self.detail_table_callback = detail_table_callback
 
 
     def set_view_ref(self, view):
@@ -29,7 +30,10 @@ class MapScene(QGraphicsScene):
 
     # get the location of the current cursor
     def mouseMoveEvent(self, event):
+        # call the callback function to update the location display
         self.cursor_pos_callback(event.pos(), event.scenePos())
+        # then sent the event down to any items expecting it (such as hover)
+        super().mouseMoveEvent(event)
     
 
 class MapView(QGraphicsView):

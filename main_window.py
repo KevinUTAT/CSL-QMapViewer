@@ -7,7 +7,7 @@ from pathlib import Path
 import PySide6
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (QApplication, QWidget, QGraphicsView,
-                               QStatusBar, QFileDialog, QProgressDialog)
+                               QStatusBar, QFileDialog, QProgressDialog, QTableView)
 from PySide6.QtCore import QFile, QObject, QRectF, Qt, Slot
 from PySide6.QtGui import QPixmap, QImage, QPen, QColor, QAction
 
@@ -51,13 +51,16 @@ class MainWindow(QObject):
             triggered.connect(self.__open_new_city)
 
         # === Map viewer ===============================================
-        self.mapScene = MapScene(self, self.show_cursor_pos)
+        self.mapScene = MapScene(self, self.show_cursor_pos, self.show_detail)
         self.mapView = self.window.findChild(MapView, 'mapView')
         self.mapView.setScene(self.mapScene)
         self.mapScene.set_view_ref(self.mapView)
         self.mapView.setDragMode(QGraphicsView.ScrollHandDrag)  # enable panning
         self.mapView.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
         self.mapView.droppedFiles.connect(self.onDropped)
+
+        # === Detail table =============================================
+        self.detailTable = self.window.findChild(QTableView, 'detailTableView')
 
     def onDropped(self, links):
         for link in links:
@@ -105,6 +108,13 @@ class MainWindow(QObject):
         pos_y = -cursor_scene_pos.y() / self.backend_size * (2 * MAX_COOR) - MAX_COOR
         msg = f"X={pos_x:.4f},\tY={pos_y:.4f}"
         self.status_bar.showMessage(msg)
+
+    def show_detail(self, detail_model):
+        self.detailTable.setModel(detail_model)
+        # self.detailTable.setAlternatingRowColors(True)
+        self.detailTable.setColumnWidth(0, 200)
+        self.detailTable.setWordWrap(True)
+        self.detailTable.verticalHeader().hide()
 
 
 if __name__ == "__main__":
