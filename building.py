@@ -51,7 +51,7 @@ class Building(object):
 
 
     def add_myname(self, myname):
-        self.myname = myname
+        self.name = myname
     
     # add a sub-building
     def add_child(self, subb):
